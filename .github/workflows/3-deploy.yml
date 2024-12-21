@@ -3,7 +3,7 @@ name: Deploy
 on:
   workflow_dispatch:
     inputs:
-      refToBuild:
+      commitHash:
         description: "Git ref (Commit ID) to build"
         required: true
 
@@ -23,18 +23,18 @@ jobs:
         with:
           version: latest
       - name: Deploy started
-        run: ezcd-cli deploy-started --project $EZCD_PROJECT --hash "${{ inputs.refToBuild }}"
+        run: ezcd-cli deploy-started --project $EZCD_PROJECT --hash "${{ inputs.commitHash }}"
 
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.refToBuild }}
+          ref: ${{ inputs.commitHash }}
       
       - name: Run fake deploy
         run: ./simulate_stage.sh 5 15 2
       
       - name: Deploy passed
-        run: ezcd-cli deploy-passed --project $EZCD_PROJECT --hash "${{ inputs.refToBuild }}"
+        run: ezcd-cli deploy-passed --project $EZCD_PROJECT --hash "${{ inputs.commitHash }}"
       - name: Deploy failed
         if: failure()
-        run: ezcd-cli deploy-failed --project $EZCD_PROJECT --hash "${{ inputs.refToBuild }}"
+        run: ezcd-cli deploy-failed --project $EZCD_PROJECT --hash "${{ inputs.commitHash }}"

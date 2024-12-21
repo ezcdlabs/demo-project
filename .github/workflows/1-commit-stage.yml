@@ -9,7 +9,7 @@ env:
   EZCD_PROJECT: demo-project
 
 jobs:
-  build:
+  commit-stage:
     runs-on: ubuntu-latest
     steps:
       - name: Setup ezcd-cli
@@ -28,6 +28,14 @@ jobs:
 
       - name: Commit stage completed
         run: ezcd-cli commit-stage-passed --project $EZCD_PROJECT --hash "${{ github.sha }}"
+
+      - name: Trigger Acceptance if there is a queue
+        run: |
+          QUEUED_HASH=$(ezcd-cli get-queued-for-acceptance --project $EZCD_PROJECT)
+          if [ $? -eq 0 ] && [ -n "$QUEUED_HASH" ]; then
+            echo "Triggering acceptance stage for commit $QUEUED_HASH"
+            gh workflow run 2-acceptance-stage.yml -f commitHash=$QUEUED_HASH
+          fi
 
       - name: Commit stage failed
         if: failure()

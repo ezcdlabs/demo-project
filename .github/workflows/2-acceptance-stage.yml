@@ -2,19 +2,47 @@ name: Acceptance Stage
 
 on:
   workflow_run:
-    workflows: ["Commit Stage"]
+    workflows: ["Commit Stage", "Acceptance Stage"]
     types:
       - completed
 
 concurrency: acceptance_environment
 
+permissions:
+  actions: 'write'
+
 env:
   EZCD_DATABASE_URL: ${{ secrets.EZCD_DATABASE_URL }}
   EZCD_PROJECT: demo-project
-
+  GH_TOKEN: ${{ secrets. GITHUB_TOKEN }}
 jobs:
-  deploy-to-acceptance-environment:
+  check-acceptance-queue:
     runs-on: ubuntu-22.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      commitHash: ${{ steps.check_queued.outputs.commitHash }}
+    steps:
+      - name: Setup ezcd-cli
+        uses: ezcdlabs/ezcd@main
+        with:
+          version: latest
+      
+      - name: Check for queued acceptance commits
+        id: check_queued
+        run: |        
+          COMMIT_HASH=$(ezcd-cli get-queued-for-acceptance --project $EZCD_PROJECT)
+          if [ $? -ne 0 ] || [ -z "$COMMIT_HASH" ]; then
+            echo "No queued commits for acceptance, exiting..."
+            gh run cancel ${{ github.run_id }}
+            gh run watch ${{ github.run_id }}
+            exit 0
+          fi
+          echo "::set-output name=commitHash::$COMMIT_HASH"
+        shell: bash
+
+  run-acceptance-stage:
+    runs-on: ubuntu-22.04
+    needs: [check-acceptance-queue]
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment: acceptance
     steps:
@@ -22,8 +50,9 @@ jobs:
         uses: ezcdlabs/ezcd@main
         with:
           version: latest
+      
       - name: Acceptance stage started
-        run: ezcd-cli acceptance-stage-started --project $EZCD_PROJECT --hash "${{ github.sha }}"
+        run: ezcd-cli acceptance-stage-started --project $EZCD_PROJECT --hash "${{ needs.check-acceptance-queue.outputs.commitHash }}"
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,8 +61,8 @@ jobs:
         run: ./simulate_stage.sh 120 240 5
 
       - name: Acceptance stage passed
-        run: ezcd-cli acceptance-stage-passed --project $EZCD_PROJECT --hash "${{ github.sha }}"
+        run: ezcd-cli acceptance-stage-passed --project $EZCD_PROJECT --hash "${{ needs.check-acceptance-queue.outputs.commitHash }}"
 
       - name: Acceptance stage failed
         if: failure()
-        run: ezcd-cli acceptance-stage-failed --project $EZCD_PROJECT --hash "${{ github.sha }}"
+        run: ezcd-cli acceptance-stage-failed --project $EZCD_PROJECT --hash "${{ needs.check-acceptance-queue.outputs.commitHash }}"
