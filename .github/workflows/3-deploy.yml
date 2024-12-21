@@ -1,0 +1,40 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      refToBuild:
+        description: "Git ref (Commit ID) to build"
+        required: true
+
+concurrency: production_environment
+
+env:
+  EZCD_DATABASE_URL: ${{ secrets.EZCD_DATABASE_URL }}
+  EZCD_PROJECT: demo-project
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    environment: production
+    steps:
+      - name: Setup ezcd-cli
+        uses: ezcdlabs/ezcd@main
+        with:
+          version: latest
+      - name: Deploy started
+        run: ezcd-cli deploy-started --project $EZCD_PROJECT --hash "${{ inputs.refToBuild }}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.refToBuild }}
+      
+      - name: Run fake deploy
+        run: ./simulate_stage.sh 5 15 2
+      
+      - name: Deploy passed
+        run: ezcd-cli deploy-passed --project $EZCD_PROJECT --hash "${{ inputs.refToBuild }}"
+      - name: Deploy failed
+        if: failure()
+        run: ezcd-cli deploy-failed --project $EZCD_PROJECT --hash "${{ inputs.refToBuild }}"

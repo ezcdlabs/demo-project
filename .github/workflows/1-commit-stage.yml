@@ -1,0 +1,32 @@
+name: Commit Stage
+
+on: push
+
+env:
+  EZCD_DATABASE_URL: ${{ secrets.EZCD_DATABASE_URL }}
+  EZCD_PROJECT: demo-project
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup ezcd-cli
+        uses: ezcdlabs/ezcd@main
+        with:
+          version: latest
+
+      - name: Commit stage started
+        run: ezcd-cli commit-stage-started --project $EZCD_PROJECT --hash "${{ github.sha }}" --author-name "${{ github.actor }}" --author-email "${{ github.actor }}" --message "${{ github.event.head_commit.message }}" --date "${{ github.event.head_commit.timestamp }}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run fake tests
+        run: ./simulate_stage.sh 20 100 20
+
+      - name: Commit stage completed
+        run: ezcd-cli commit-stage-passed --project $EZCD_PROJECT --hash "${{ github.sha }}"
+
+      - name: Commit stage failed
+        if: failure()
+        run: ezcd-cli commit-stage-failed --project $EZCD_PROJECT --hash "${{ github.sha }}"

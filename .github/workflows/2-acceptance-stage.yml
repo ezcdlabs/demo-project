@@ -1,0 +1,39 @@
+name: Acceptance Stage
+
+on:
+  workflow_run:
+    workflows: ["Commit Stage"]
+    types:
+      - completed
+
+concurrency: acceptance_environment
+
+env:
+  EZCD_DATABASE_URL: ${{ secrets.EZCD_DATABASE_URL }}
+  EZCD_PROJECT: demo-project
+
+jobs:
+  deploy-to-acceptance-environment:
+    runs-on: ubuntu-22.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: acceptance
+    steps:
+      - name: Setup ezcd-cli
+        uses: ezcdlabs/ezcd@main
+        with:
+          version: latest
+      - name: Acceptance stage started
+        run: ezcd-cli acceptance-stage-started --project $EZCD_PROJECT --hash "${{ github.sha }}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Run fake tests
+        run: ./simulate_stage.sh 120 240 5
+
+      - name: Acceptance stage passed
+        run: ezcd-cli acceptance-stage-passed --project $EZCD_PROJECT --hash "${{ github.sha }}"
+
+      - name: Acceptance stage failed
+        if: failure()
+        run: ezcd-cli acceptance-stage-failed --project $EZCD_PROJECT --hash "${{ github.sha }}"
