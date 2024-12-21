@@ -9,7 +9,7 @@ on:
   #   - cron: '*/2 9-17 * * *' # Runs every 2 minutes between 9 AM and 5 PM
     
 env:
-    GH_TOKEN: ${{ github.PERSONAL_ACCESS_TOKEN }}
+    GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 jobs:
   random-commit:
