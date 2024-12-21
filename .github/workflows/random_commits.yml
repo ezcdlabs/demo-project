@@ -1,6 +1,7 @@
 name: Random Commits
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '*/2 9-17 * * *' # Runs every 2 minutes between 9 AM and 5 PM
     
