@@ -30,3 +30,4 @@ jobs:
           git add latest.txt
           git commit -m "Update latest.txt with random string $RANDOM_STRING"
           git push
+          gh workflow run 1-commit-stage.yml

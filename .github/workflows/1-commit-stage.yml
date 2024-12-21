@@ -1,6 +1,8 @@
 name: Commit Stage
 
-on: push
+on: 
+  push:
+  workflow_dispatch:
 
 env:
   EZCD_DATABASE_URL: ${{ secrets.EZCD_DATABASE_URL }}
