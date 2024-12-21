@@ -8,6 +8,8 @@ on:
   schedule:
     - cron: '*/2 9-17 * * *' # Runs every 2 minutes between 9 AM and 5 PM
     
+concurrency: random_commits
+
 env:
     GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
