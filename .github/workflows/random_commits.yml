@@ -1,28 +1,28 @@
 name: Random Commits
 
 on:
-    schedule:
-        - cron: '*/2 9-17 * * *' # Runs every 2 minutes between 9 AM and 5 PM
-
+  schedule:
+    - cron: '*/2 9-17 * * *' # Runs every 2 minutes between 9 AM and 5 PM
+    
 jobs:
-    random-commit:
-        runs-on: ubuntu-latest
-
-        steps:
-        - name: Checkout repository
-            uses: actions/checkout@v2
-
-        - name: Generate random string
-            id: random-string
-            run: echo "RANDOM_STRING=$(openssl rand -hex 12)" >> $GITHUB_ENV
-
-        - name: Update 'latest.txt' file
-            run: echo $RANDOM_STRING > latest.txt
-
-        - name: Commit changes
-            run: |
-                git config --global user.name "github-actions[bot]"
-                git config --global user.email "github-actions[bot]@users.noreply.github.com"
-                git add latest.txt
-                git commit -m "Update latest.txt with random string $RANDOM_STRING"
-                git push
+  random-commit:
+    runs-on: ubuntu-latest
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Generate random string
+        id: random-string
+        run: echo "RANDOM_STRING=$(openssl rand -hex 12)" >> $GITHUB_ENV
+        
+      - name: Update 'latest.txt' file
+        run: echo $RANDOM_STRING > latest.txt
+        
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add latest.txt
+          git commit -m "Update latest.txt with random string $RANDOM_STRING"
+          git push
