@@ -14,6 +14,6 @@ The commit stage runs on every push to this repo, it is where a project would no
 
 The acceptance stage is triggered by the completion of the commit stage, but it cannot run in parallel with itself - in a real project there would be an acceptance environment that can only have one release candidate being tested at a time.
 
-The acceptance stage workflow will initially ask EZCD for the hash of the commit that is currently top of the queue. This is the *most recently* authored commit that has *passed* the commit stage. This means that the acceptance phase "jumps" ahead to catch up with backlog of release candidates.
+The acceptance stage workflow will initially ask EZCD for the hash of the commit that is currently top of the queue. This is the *most recently* authored commit that has *passed* the commit stage. This means that the acceptance phase "jumps" ahead to catch up with the backlog of release candidates.
 
 The deploy workflow is only triggered by manual action (workflow_dispatch), where the user must provide the commit hash to deploy.
