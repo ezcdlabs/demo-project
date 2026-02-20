@@ -7,7 +7,7 @@ There are three demo workflows:
 - 2-acceptance-stage.yml
 - 3-deploy.yml
 
-And there is one additional workflow just to add to the demo:
+(Currently disabled) And there is one additional workflow just to add to the demo:
 - random_commits.yml
 
 The commit stage runs on every push to this repo, it is where a project would normally run unit tests and create a release candidate.
